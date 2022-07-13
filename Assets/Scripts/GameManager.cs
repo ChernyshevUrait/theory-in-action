@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour
 {
@@ -25,6 +26,27 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
     }
+
+    #endregion
+
+    #region Inspector Properties
+
+    /// <summary>
+    /// Bounds of game area <see cref="GameAreaBound"/>
+    /// </summary>
+    [Tooltip("Bounds of game area")]
+    [SerializeField] private GameAreaBound m_gameAreaBounds;
+
+    /// <summary>
+    /// Bounds of game area <see cref="GameAreaBound"/>
+    /// </summary>
+    [HideInInspector] public GameAreaBound GameAreaBounds => m_gameAreaBounds;
+
+    #endregion
+
+    #region Events
+
+    public UnityEvent<int> onPiontsChenged;
 
     #endregion
 }
