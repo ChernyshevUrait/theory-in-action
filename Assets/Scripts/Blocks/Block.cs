@@ -9,21 +9,44 @@ abstract public class Block : MonoBehaviour
 {
     #region Inspector properties
 
+    /// <summary>
+    /// Block is on palette
+    /// </summary>
+    [Tooltip("Block is on palette")]
     [SerializeField] private bool onPalette;
+
+    /// <summary>
+    /// Block cost
+    /// </summary>
+    [Tooltip("Block cost")]
     [SerializeField] private int cost;
 
     #endregion
 
     #region Materials
 
+    /// <summary>
+    /// Material of block on game area or palette
+    /// </summary>
     private Material commonMaterial;
+
+    /// <summary>
+    /// Material of block while dragging
+    /// </summary>
     private Material dragMaterial;
 
     #endregion
 
     #region Events
 
+    /// <summary>
+    /// Invoked when block is deleted from game area
+    /// </summary>
     public static UnityEvent<int> onDelete = new();
+
+    /// <summary>
+    /// Invoked when block is instantiated on game area
+    /// </summary>
     public static UnityEvent<int> onInstantiate = new();
 
     #endregion
@@ -40,18 +63,24 @@ abstract public class Block : MonoBehaviour
             GameManager.Instance.onPiontsChenged.AddListener(CheckRemainingPoint);
         }
 
-        CheckRemainingPoint(-1);
+#warning Delete after GameManager.cs update 
+        CheckRemainingPoint(100);
     }
 
     private void Update()
     {
-        Action moveAction = (onPalette) ? StaticMove : Move;
-        moveAction();
+        if (!isDragging)
+        {
+            Action moveAction = (onPalette) ? StaticMove : Move;
+            moveAction();
+        }
     }
 
     private void OnMouseDrag()
     {
-        if (!isEnable) { return; }
+        if (!isEnabled) { return; }
+
+        isDragging = true;
 
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         Vector3 rayPoint = ray.GetPoint(-Camera.main.gameObject.transform.position.z);
@@ -73,20 +102,16 @@ abstract public class Block : MonoBehaviour
 
     private void OnMouseUp()
     {
-        if (!isEnable) { return; }
+        if (!isEnabled) { return; }
+
+        if (isDragging) { isDragging = false; }
 
         GetComponent<Renderer>().material = commonMaterial;
 
         if (clickCount == 2)
         {
-            if (onPalette)
-            {
-                Instantiate();
-            }
-            else
-            {
-                Delete();
-            }
+            if (onPalette) { Instantiate(); }
+            else { Delete(); }
         }
 
         if (onPalette)
@@ -104,6 +129,11 @@ abstract public class Block : MonoBehaviour
     #endregion
 
     #region Moving at game area
+
+    /// <summary>
+    /// Is block dragging now?
+    /// </summary>
+    protected bool isDragging = false;
 
     // ABSTRACTION
     // POLYMORPHISM
@@ -155,6 +185,9 @@ abstract public class Block : MonoBehaviour
 
     #region Delete block
 
+    /// <summary>
+    /// Delete block from game area
+    /// </summary>
     private void Delete()
     {
         Destroy(gameObject);
@@ -166,6 +199,11 @@ abstract public class Block : MonoBehaviour
 
     #region Instantiate Block
 
+    /// <summary>
+    /// Create new semitransparent material from another material
+    /// </summary>
+    /// <param name="material">Source material</param>
+    /// <returns>Semitransparent material</returns>
     private static Material CreateTransparentMaterial(Material material)
     {
         Material newMaterial = new(material);
@@ -186,10 +224,17 @@ abstract public class Block : MonoBehaviour
         return newMaterial;
     }
 
+    /// <summary>
+    /// Block position when dragging is started
+    /// Value before dragging is <see cref="Vector3.positiveInfinity"/>
+    /// </summary>
     private Vector3 startDragPosition = Vector3.positiveInfinity;
 
     // ABSTRACTION
     // POLYMORPHISM
+    /// <summary>
+    /// Instantiate new block on the center of game area
+    /// </summary>
     private void Instantiate()
     {
         Vector3 instantiatePosition = (GameManager.Instance == null) ? Vector3.zero : GameManager.Instance.GameAreaBounds.Center;
@@ -198,6 +243,10 @@ abstract public class Block : MonoBehaviour
 
     // ABSTRACTION
     // POLYMORPHISM
+    /// <summary>
+    /// Instantiate new block on specified position of game area
+    /// </summary>
+    /// <param name="instantiatePosition">Position of instantiation</param>
     private void Instantiate(Vector3 instantiatePosition)
     {
         GameObject newBlock = Instantiate(gameObject, instantiatePosition, transform.rotation);
@@ -206,17 +255,35 @@ abstract public class Block : MonoBehaviour
         onInstantiate.Invoke(cost);
     }
 
+    // ABSTRACTION
+    // POLYMORPHISM
+    /// <summary>
+    /// Is point on game area?
+    /// Calc based on block size and position
+    /// </summary>
+    /// <param name="point">Point for checking</param>
     private bool IsPositionInBounds(Vector3 point)
     {
         if (GameManager.Instance == null)
         {
             return true;
         }
-
+        
         return IsPositionInBounds(GameManager.Instance.GameAreaBounds.MinX, GameManager.Instance.GameAreaBounds.MaxX, point.x, transform.localScale.x / 2) 
             && IsPositionInBounds(GameManager.Instance.GameAreaBounds.MinY, GameManager.Instance.GameAreaBounds.MaxY, point.y, transform.localScale.y / 2);
     }
 
+    // ABSTRACTION
+    // POLYMORPHISM
+    /// <summary>
+    /// Is position in specified range?
+    /// Calc based on block size 
+    /// </summary>
+    /// <param name="minBound">Min range value (included)</param>
+    /// <param name="maxBound">Max range value (included)</param>
+    /// <param name="position">Position for checking (one dimension)</param>
+    /// <param name="scale">Block size (one dimension)</param>
+    /// <returns></returns>
     private bool IsPositionInBounds(float minBound, float maxBound, float position, float scale)
     {
         float calcMinBound = minBound + scale;
@@ -225,18 +292,25 @@ abstract public class Block : MonoBehaviour
         return position >= calcMinBound && position <= calcMaxBound;
     }
 
-
     #endregion
 
     #region Disabling
 
-    private bool isEnable = true;
+    /// <summary>
+    /// Is block enable on palette?
+    /// </summary>
+    private bool isEnabled = true;
 
+    /// <summary>
+    /// Check enabled of block by remaing points in game
+    /// Switching of field <see cref="isEnabled"/> and Material of block
+    /// </summary>
+    /// <param name="remainingPoints">Remaing points</param>
     private void CheckRemainingPoint(int remainingPoints)
     {
-        isEnable = remainingPoints >= cost;
+        isEnabled = remainingPoints >= cost;
 
-        GetComponent<Renderer>().material = (isEnable) ? commonMaterial : dragMaterial;
+        GetComponent<Renderer>().material = (isEnabled) ? commonMaterial : dragMaterial;
     }
 
     #endregion
@@ -270,8 +344,14 @@ abstract public class Block : MonoBehaviour
 
     #region Showing Behavior
 
+    /// <summary>
+    /// Block moving on game area
+    /// </summary>
     abstract protected void Move();
 
+    /// <summary>
+    /// Block moving on palette
+    /// </summary>
     abstract protected void StaticMove();
 
     #endregion
