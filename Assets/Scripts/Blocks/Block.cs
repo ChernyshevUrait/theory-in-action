@@ -150,8 +150,8 @@ abstract public class Block : MonoBehaviour
             return point;
         }
 
-        point.x = FitPositionToBounds(GameManager.Instance.GameAreaBounds.MinX, GameManager.Instance.GameAreaBounds.MaxX, point.x, transform.localScale.x / 2);
-        point.y = FitPositionToBounds(GameManager.Instance.GameAreaBounds.MinY, GameManager.Instance.GameAreaBounds.MaxY, point.y, transform.localScale.y / 2);
+        point.x = FitPositionToBounds(GameManager.Instance.AreaBounds.MinX, GameManager.Instance.AreaBounds.MaxX, point.x, transform.localScale.x / 2);
+        point.y = FitPositionToBounds(GameManager.Instance.AreaBounds.MinY, GameManager.Instance.AreaBounds.MaxY, point.y, transform.localScale.y / 2);
 
         return point;
     }
@@ -188,7 +188,7 @@ abstract public class Block : MonoBehaviour
     /// <summary>
     /// Delete block from game area
     /// </summary>
-    private void Delete()
+    public void Delete()
     {
         Destroy(gameObject);
 
@@ -237,7 +237,7 @@ abstract public class Block : MonoBehaviour
     /// </summary>
     private void Instantiate()
     {
-        Vector3 instantiatePosition = (GameManager.Instance == null) ? Vector3.zero : GameManager.Instance.GameAreaBounds.Center;
+        Vector3 instantiatePosition = (GameManager.Instance == null) ? Vector3.zero : GameManager.Instance.AreaBounds.Center;
         Instantiate(instantiatePosition);
     }
 
@@ -249,7 +249,7 @@ abstract public class Block : MonoBehaviour
     /// <param name="instantiatePosition">Position of instantiation</param>
     private void Instantiate(Vector3 instantiatePosition)
     {
-        GameObject newBlock = Instantiate(gameObject, instantiatePosition, transform.rotation);
+        GameObject newBlock = Instantiate(gameObject, instantiatePosition, transform.rotation, GameManager.Instance.transform);
         newBlock.GetComponent<Block>().onPalette = false;
 
         onInstantiate.Invoke(cost);
@@ -268,9 +268,8 @@ abstract public class Block : MonoBehaviour
         {
             return true;
         }
-        
-        return IsPositionInBounds(GameManager.Instance.GameAreaBounds.MinX, GameManager.Instance.GameAreaBounds.MaxX, point.x, transform.localScale.x / 2) 
-            && IsPositionInBounds(GameManager.Instance.GameAreaBounds.MinY, GameManager.Instance.GameAreaBounds.MaxY, point.y, transform.localScale.y / 2);
+
+        return IsPositionInBounds(point, GameManager.Instance.AreaBounds);
     }
 
     // ABSTRACTION
@@ -290,6 +289,20 @@ abstract public class Block : MonoBehaviour
         float calcMaxBound = maxBound - scale;
 
         return position >= calcMinBound && position <= calcMaxBound;
+    }
+
+    // ABSTRACTION
+    // POLYMORPHISM
+    /// <summary>
+    /// Is point on specified bounds?
+    /// Calc based on block size and position
+    /// </summary>
+    /// <param name="point">Point for checking</param>
+    /// <param name="bound">Bounds</param>
+    public bool IsPositionInBounds(Vector3 point, AreaBound bound)
+    {
+        return IsPositionInBounds(bound.MinX, bound.MaxX, point.x, transform.localScale.x / 2)
+            && IsPositionInBounds(bound.MinY, bound.MaxY, point.y, transform.localScale.y / 2);
     }
 
     #endregion

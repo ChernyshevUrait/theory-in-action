@@ -1,20 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.Events;
 
 // INHERITANCE
-public class GameManager : Area
+public class PaletteManager : Area
 {
     #region Singleton Implementation
 
-    // ENCAPSULATION
     /// <summary>
-    /// <para>Instance of <see cref="GameManager"/></para>
+    /// <para>Instance of <see cref="PaletteManager"/></para>
     /// <para>Singleton pattern</para>
     /// </summary>
-    public static GameManager Instance { get; private set; }
+    public static PaletteManager Instance { get; private set; }
 
     private void Awake()
     {
@@ -29,15 +26,4 @@ public class GameManager : Area
     }
 
     #endregion
-
-    #region Events
-
-    public UnityEvent<int> onPiontsChenged;
-
-    #endregion
-
-    private void LoadLevel()
-    {
-
-    }
 }
