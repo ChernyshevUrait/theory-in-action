@@ -5,7 +5,9 @@ using UnityEngine.Events;
 using System;
 
 // ABSTRACTION
-abstract public class Block : MonoBehaviour
+// INHERITANCE
+[RequireComponent(typeof(Collider))]
+abstract public class Block : Resetable
 {
     #region Inspector properties
 
@@ -42,32 +44,50 @@ abstract public class Block : MonoBehaviour
     /// <summary>
     /// Invoked when block is deleted from game area
     /// </summary>
-    public static UnityEvent<int> onDelete = new();
+    public UnityEvent<int> onDelete = new();
 
     /// <summary>
     /// Invoked when block is instantiated on game area
     /// </summary>
-    public static UnityEvent<int> onInstantiate = new();
+    public UnityEvent<int> onInstantiate = new();
+
+    #endregion
+
+    #region Resetable Overrides
+
+    protected override void Reset()
+    {
+        if (onPalette)
+        { return; }
+
+        base.Reset();
+    }
 
     #endregion
 
     #region Unity Messages
 
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
+    
         commonMaterial = GetComponent<Renderer>().material;
         dragMaterial = CreateTransparentMaterial(commonMaterial);
 
         if (onPalette && GameManager.Instance != null)
         {
-            GameManager.Instance.onPiontsChenged.AddListener(CheckRemainingPoint);
+            GameManager.Instance.onPointsChenged.AddListener(CheckRemainingPoint);
+
         }
 
-#warning Delete after GameManager.cs update 
-        CheckRemainingPoint(100);
+        if (GameManager.Instance != null)
+        {
+            onDelete.AddListener(GameManager.Instance.IncreaseRemainingPoint);
+            onInstantiate.AddListener(GameManager.Instance.DecreaseRemainingPoints);
+        }
     }
 
-    private void Update()
+    protected virtual void FixedUpdate()
     {
         if (!isDragging)
         {

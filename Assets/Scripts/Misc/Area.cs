@@ -2,7 +2,7 @@
 using UnityEngine;
 using System.Linq;
 
-[ExecuteInEditMode]
+//[ExecuteInEditMode]
 [RequireComponent(typeof(LineRenderer))]
 public class Area : MonoBehaviour
 {
@@ -62,7 +62,7 @@ public class Area : MonoBehaviour
     /// <summary>
     /// Intialize positions of <see cref="LineRenderer"/> to display area bounds
     /// </summary>
-    private void InitializeRenderPoints()
+    protected virtual void Initialize()
     {
         LineRenderer lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.startWidth = 0.25f;
@@ -105,7 +105,7 @@ public class Area : MonoBehaviour
             float maxX = minX + ((area.isFixedWidth) ? area.fixedWidth : floatWidth);
 
             area.AreaBounds = new(minX, maxX, area.AreaBounds.MinY, area.AreaBounds.MaxY);
-            area.InitializeRenderPoints();
+            area.Initialize();
         }
     }
 
@@ -118,8 +118,8 @@ public class Area : MonoBehaviour
 
         foreach (Block block in blocks)
         {
-            
-            block.transform.Translate(offset);
+
+            block.transform.Translate(offset, Space.World);
             if (!block.IsPositionInBounds(block.transform.position, AreaBounds))
             {
 #if UNITY_EDITOR

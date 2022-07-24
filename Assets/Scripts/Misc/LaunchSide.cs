@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 internal enum LaunchSide
 {
-    Left = 1,
-    Right = -1
+    Left = -1,
+    Right = 1
 }
 

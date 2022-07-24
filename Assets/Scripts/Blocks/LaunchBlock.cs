@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // INHERITANCE
+[RequireComponent(typeof(Rigidbody))]
 public class LaunchBlock : Block
 {
     /// <summary>
@@ -13,7 +14,7 @@ public class LaunchBlock : Block
 
     /// <summary>
     /// Is moving coroutine started
-    /// <see cref="Rotate"/>
+    /// <see cref="StaticRotate"/>
     /// </summary>
     private bool isMoving = false;
 
@@ -22,9 +23,8 @@ public class LaunchBlock : Block
     // INHERITANCE
     protected override void Move()
     {
-        if (!isMoving)
+        if (isMoving)
         {
-            isMoving = true;
             StartCoroutine(Rotate());
         }
     }
@@ -32,29 +32,82 @@ public class LaunchBlock : Block
     // INHERITANCE
     protected override void StaticMove()
     {
-        Move();
+        if (!isMoving)
+        {
+            isMoving = true;
+            StartCoroutine(StaticRotate());
+        }
     }
 
     #endregion
 
     // ABSTRACTION
     /// <summary>
-    /// Rotation (launch)
+    /// Rotation (launch) for <see cref="StaticMove"/>
     /// </summary>
-    private IEnumerator Rotate()
+    private IEnumerator StaticRotate()
     {
-        float angle = 60 * (int)side;
-        Vector3 offset = (int)side * (transform.lossyScale.x - transform.lossyScale.y) * Vector3.right / 2;
-        Vector3 point = transform.position - offset;
 
         while (isMoving && !isDragging)
         {
             yield return new WaitForSeconds(3);
-            transform.RotateAround(point,Vector3.forward, angle);
+            Vector3 startPosition = transform.position;
+            GetComponent<Rigidbody>().AddTorque(Vector3.back * 200 * (int)side, ForceMode.Impulse);
+
             yield return new WaitForSeconds(1);
-            transform.RotateAround(point, Vector3.forward, -angle);
+
+            GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+            transform.position = startPosition;
+            transform.rotation = Quaternion.identity;
         }
-        transform.rotation = Quaternion.identity;
+
         isMoving = false;
+    }
+
+    // ABSTRACTION
+    /// <summary>
+    /// Rotation (launch) for <see cref="Move"/>
+    /// </summary>
+    private IEnumerator Rotate()
+    {
+
+        Vector3 startPosition = transform.position;
+        GetComponent<Rigidbody>().AddTorque(Vector3.back * 200 * (int)side, ForceMode.Impulse);
+            
+        yield return new WaitForSeconds(1);
+
+        GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+        transform.position = startPosition;
+        transform.rotation = Quaternion.identity;
+
+        isMoving = false;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider.tag == "Ball")
+        {
+            isMoving = true;
+        }
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.collider.tag == "Ball")
+        {
+            isMoving = false;
+        }
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+
+        Vector3 offset = (int)side * (transform.lossyScale.x - transform.lossyScale.y) * Vector3.right / 2;
+        
+        Rigidbody rigidbody = GetComponent<Rigidbody>();
+
+        rigidbody.centerOfMass = offset;
+
     }
 }
