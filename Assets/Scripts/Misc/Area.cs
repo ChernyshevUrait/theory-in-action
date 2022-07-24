@@ -33,7 +33,7 @@ public class Area : MonoBehaviour
 
             Vector3 offset = value.Center - m_AreaBounds.Center;
             m_AreaBounds = value;
-            UpdateBlocks(offset);
+            UpdateObjects(offset);
         }
     }
 
@@ -110,9 +110,9 @@ public class Area : MonoBehaviour
     }
 
     /// <summary>
-    /// Update all <see cref="Block"/> in area
+    /// Update all objects in area
     /// </summary>
-    private void UpdateBlocks(Vector3 offset)
+    protected virtual void UpdateObjects(Vector3 offset)
     {
         Block[] blocks = transform.GetComponentsInChildren<Block>();
 

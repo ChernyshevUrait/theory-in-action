@@ -25,6 +25,7 @@ public class LaunchBlock : Block
     {
         if (isMoving)
         {
+            isMoving = false;
             StartCoroutine(Rotate());
         }
     }
@@ -48,9 +49,13 @@ public class LaunchBlock : Block
     private IEnumerator StaticRotate()
     {
 
-        while (isMoving && !isDragging)
+        while (isMoving)
         {
             yield return new WaitForSeconds(3);
+
+            if (isDragging)
+            { break; }
+
             Vector3 startPosition = transform.position;
             GetComponent<Rigidbody>().AddTorque(Vector3.back * 200 * (int)side, ForceMode.Impulse);
 
@@ -59,6 +64,8 @@ public class LaunchBlock : Block
             GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
             transform.position = startPosition;
             transform.rotation = Quaternion.identity;
+
+            
         }
 
         isMoving = false;
@@ -72,15 +79,13 @@ public class LaunchBlock : Block
     {
 
         Vector3 startPosition = transform.position;
-        GetComponent<Rigidbody>().AddTorque(Vector3.back * 200 * (int)side, ForceMode.Impulse);
+        GetComponent<Rigidbody>().AddTorque(Vector3.back * 400 * (int)side, ForceMode.Impulse);
             
         yield return new WaitForSeconds(1);
 
         GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
-        transform.position = startPosition;
         transform.rotation = Quaternion.identity;
-
-        isMoving = false;
+        transform.position = startPosition;
     }
 
     private void OnCollisionEnter(Collision collision)

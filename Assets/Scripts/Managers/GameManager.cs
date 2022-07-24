@@ -89,12 +89,41 @@ public class GameManager : Area
 
     #endregion
 
+    #region Area Overrides
+
+    protected override void UpdateObjects(Vector3 offset)
+    {
+        base.UpdateObjects(offset);
+
+#if UNITY_EDITOR
+        DestroyImmediate(ball.gameObject);
+        DestroyImmediate(box.gameObject);
+#else
+        Destroy(ball.gameObject);
+        Destroy(box.gameObject);
+#endif
+        SpawnBall();
+        SpawnBox();
+    }
+
+    #endregion
+
     private void Start()
     {
         InitializeLevel();
     }
 
     #region Spawn
+
+    /// <summary>
+    /// Spawned ball in <see cref="InitializeLevel(int)"/>
+    /// </summary>
+    private Ball ball;
+
+    /// <summary>
+    /// Spawned box in <see cref="InitializeLevel(int)"/>
+    /// </summary>
+    private Box box;
 
     /// <summary>
     /// Additional offset of spawn area in <see cref="Area.AreaBounds"/>
@@ -164,17 +193,14 @@ public class GameManager : Area
 
         boxPrefab.tag = "Finish";
 
-        Instantiate(boxPrefab, spawnPosition, boxPrefab.transform.rotation);
+        box = Instantiate(boxPrefab, spawnPosition, boxPrefab.transform.rotation);
     }
 
     #endregion
 
     #region Game Simulation
 
-    /// <summary>
-    /// Spawned ball in <see cref="InitializeLevel(int)"/>
-    /// </summary>
-    private Ball ball;
+    
 
     /// <summary>
     /// Current game level
@@ -332,4 +358,6 @@ public class GameManager : Area
     }
 
     #endregion
+
+
 }
